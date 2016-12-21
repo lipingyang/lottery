@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html ng-app="app">
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<link rel="stylesheet" href="css/style.css" />
+	</head>
+	<body >
+		<div ng-controller="myCtrl" id="lottery">
+			<div id="step1">
+				<button ng-click="start()">开始抽奖</button>
+			</div>
+			
+			<div id="step2" class="hide">
+				<div ng-repeat="item in items" class="item" id="{{item.id}}" 
+					ng-class="{'active':item.status}">
+					{{item.name}}
+				</div>
+			</div>
+			
+			<div id="step3" class="hide top">
+				<a href="javascript:void(0)" ng-click="reset()" class="reset">重新开始</a>
+				<a href="javascript:void(0)" ng-click="edit()" class="edit">修改奖品</a>
+				<button class="active">{{result}}</button>
+			</div>
+			
+			<div id="step4" class="hide top">
+			   <a href="javascript:void(0)" ng-click="return()" class="reset">返回</a>
+			   
+			   <form ng-submit="add()">
+			   	 <input type="text" ng-model="name" required placeholder="名称"/>
+			   	 <input class="btn" type="submit" value="添加"/>
+			   </form>
+			   
+			   <ul>
+			   	 <li ng-repeat="item in items">
+			   	 	<span>{{item.id}}</span>
+			   	 	<span class="span">{{item.name}}</span>
+			   	 	<a href="javascript:void(0)" ng-click="del(item.id)">删除</a>
+			   	 </li>
+			   </ul>
+			</div>
+		</div>
+	</body>
+	<script type="text/javascript" src="js/angular.min.js" ></script>
+	<script>
+		var app = angular.module('app',[]);
+		
+		app.controller('myCtrl',function($scope,$timeout){
+			//奖品
+			$scope.items = [
+			   {id:1,name:'欧洲豪华游',status:0},
+			   {id:2,name:'Mac台式电脑',status:0},
+			   {id:3,name:'iphon6手机',status:0},
+			   {id:4,name:'时尚山地车',status:0},
+			   {id:5,name:'500元充值卡',status:0},
+			   {id:6,name:'高清数字电视',status:0}
+			];
+			
+			$scope.result = "奖品为空！";
+			
+			$scope.$$ = function(id){
+				return document.getElementById(id)
+			};
+			
+			$scope.showhide = function(a, b){
+				var a = "step" + a;
+				var b = "step" + b;				
+				$scope.$$(a).style.display = 'none';
+				$scope.$$(b).style.display = 'block';
+			}
+			
+			//开始抽奖
+			
+			$scope.start = function(){
+				$scope.showhide(1, 2);
+				
+				var circle = 5;
+				
+				var selkey = Math.floor(Math.random()*$scope.items.length);
+                console.log(selkey)
+				var next = function(key){
+					
+					$scope.items[key].status = true;
+					if((key-1)>=0){
+						$scope.items[key-1].status = false;
+					}
+					if(key==0){
+						$scope.items[$scope.items.length-1].status = false;
+					}
+					
+					var timer = $timeout(function(){
+						if(circle<=0 && selkey==key){
+							$scope.showhide(2,3);
+							$scope.result = $scope.items[key].name;
+							return;
+						};
+						if($scope.items.length==key+1){
+							circle--;
+						};
+						if($scope.items[key+1]){
+							next(key+1);
+						}else{
+							next(0)
+						}
+					},100)
+				}
+				next(0)
+			}
+			
+			$scope.reset = function(){
+				$scope.showhide(3,1)
+			}
+			
+			$scope.edit = function(){
+				$scope.showhide(3,4)
+			}
+			//修改奖品的方法
+			$scope.add = function(){
+				var last_id= lastid();
+				$scope.items.push({id:last_id,name:$scope.name,status:0})
+			}
+			
+			$scope.del = function(id){
+				angular.forEach($scope.items,function(value,key){
+					if(id == value.id){
+						$scope.items.splice(key,1)
+					}
+				})
+			}
+			
+			$scope.return = function(){
+				$scope.showhide(4,3)
+			}
+			
+			function lastid(){
+				var id = 0;
+				angular.forEach($scope.items,function(value,key){
+					if(id<value.id){
+						id=value.id
+					}
+				})
+				return ++id;
+			}
+		})
+	</script>
+</html>
